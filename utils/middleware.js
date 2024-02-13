@@ -1,3 +1,4 @@
+const { request, response } = require("express")
 const logger = require("./logger")
 
 const requestLogger = (request, response, next) => {
@@ -8,6 +9,12 @@ const requestLogger = (request, response, next) => {
     next()
 }
 
+const unknownEndpoint = (request, response, next) => {
+    return response.status(404).send({ error: 'unknown endpoint' })
+}
+
+
+
 module.exports = {
-    requestLogger
+    requestLogger, unknownEndpoint
 }
