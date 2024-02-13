@@ -7,9 +7,11 @@
     "morgan": "^1.10.0"
   },
   "devDependencies": {
+    "eslint": "^8.56.0",
     "nodemon": "^3.0.3"
   },
   "scripts": {
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "lint": "eslint ."
   }
 }
