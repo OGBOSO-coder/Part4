@@ -4,6 +4,7 @@ const app = express()
 const cors = require('cors')
 const mongoose = require('mongoose')
 const logger = require('./utils/logger')
+const middleware = require ("./utils/middleware")
 
 const blogSchema = new mongoose.Schema({
     title: String,
@@ -19,6 +20,7 @@ mongoose.connect(mongoUrl)
 
 app.use(cors())
 app.use(express.json())
+app.use(middleware.requestLogger)
 
 app.get('/api/blogs', (request, response) => {
     Blog
