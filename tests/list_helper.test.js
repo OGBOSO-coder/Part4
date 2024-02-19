@@ -1,6 +1,5 @@
 const { test, describe } = require('node:test')
 const assert = require('node:assert')
-const listHelper = require('../utils/list_helper')
 const { totalLikes } = require("../utils/list_helper");
 
 
@@ -59,8 +58,6 @@ describe("total likes", () => {
   
     test("when list has only one blog, equals the likes of that", () => {
       const result = totalLikes(listWithOneBlog);
-      console.log(result)
-      expect(result).toBe(36);
       assert.strictEqual(result, 36)
     });
   });
