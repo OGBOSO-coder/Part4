@@ -1,13 +1,14 @@
-const { test, after, beforeEach} = require('node:test')
+const { test, after, beforeEach, describe} = require('node:test')
 const assert = require('node:assert')
 const mongoose = require('mongoose')
 const supertest = require('supertest')
+const helper = require("../tests/blog_helper");
 const app = require('../app')
 const Blog = require("../models/blog");
 const api = supertest(app)
 
 
-const initialBlogs = [
+/*const initialBlogs = [
   {
     title: "Excel Project",
     author: "Excel",
@@ -20,16 +21,19 @@ const initialBlogs = [
     url: "devme.url",
     likes: 39,
   },
-];
-
+]; 
+*/
+describe("Blog API tests", () => {
 beforeEach(async () => {
   await Blog.deleteMany({});
-  let noteObject = new Blog(initialBlogs[0]);
-  await noteObject.save();
-  noteObject = new Blog(initialBlogs[1]);
-  await noteObject.save();
+  // let noteObject = new Blog(initialBlogs[0]);
+  // await noteObject.save();
+  // noteObject = new Blog(initialBlogs[1]);
+  // await noteObject.save();
+  await Blog.insertMany(helper.initialBlogs);
 });
 
+describe("GET /api/blogs", () => {
 test('notes are returned as json', async () => {
   await api
     .get('/api/blogs')
@@ -40,7 +44,7 @@ test('notes are returned as json', async () => {
 test('there are 3 notes', async () => {
   const response = await api.get('/api/blogs')
 
-  assert.strictEqual(response.body.length, initialBlogs.length)
+  assert.strictEqual(response.body.length, helper.initialBlogs.length)
 })
 
 test('the first note is about HTTP methods', async () => {
@@ -57,7 +61,8 @@ test("blog post has 'id' property instead of '_id'", async () => {
   const blog = response.body[0];
   assert.strictEqual(typeof blog.id, 'string');
 });
-
+});
+describe("POST /api/blogs", () => {
 test("a valid blog can be added", async () => {
   const newBlog = {
     title: "LMS-MERN Project",
@@ -75,7 +80,7 @@ test("a valid blog can be added", async () => {
   const response = await api.get("/api/blogs");
 
   const contents = response.body.map((r) => r.title);
-  assert.strictEqual(response.body.length, initialBlogs.length + 1);
+  assert.strictEqual(response.body.length, helper.initialBlogs.length + 1);
   assert.ok(contents.includes("LMS-MERN Project"));
 });
 
@@ -116,7 +121,23 @@ test("returns 400 Bad Request if url is missing", async () => {
 
   await api.post("/api/blogs").send(newBlog).expect(400);
 });
+});
+describe("DELETE /api/blogs/:id", () => {
+  test("succeeds with status code 204 if id is valid", async () => {
+      const blogsAtStart = await helper.blogsInDb();
+      const blogToDelete = blogsAtStart[0];
 
+      const response = await api.delete(`/api/blogs/${blogToDelete.id}`);
+      assert.strictEqual(response.status, 204);
+
+      const blogsAtEnd = await helper.blogsInDb();
+      assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length - 1);
+
+      const contents = blogsAtEnd.map((r) => r.title);
+      assert.ok(!contents.includes(blogToDelete.title));
+  });
+});
 after(async () => {
   await mongoose.connection.close()
-})
+});
+});
