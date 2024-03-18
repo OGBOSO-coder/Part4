@@ -58,6 +58,64 @@ test("blog post has 'id' property instead of '_id'", async () => {
   assert.strictEqual(typeof blog.id, 'string');
 });
 
+test("a valid blog can be added", async () => {
+  const newBlog = {
+    title: "LMS-MERN Project",
+    author: "Excel",
+    url: "excel.url",
+    likes: 7900,
+  };
+
+  await api
+    .post("/api/blogs")
+    .send(newBlog)
+    .expect(201)
+    .expect("Content-Type", /application\/json/);
+
+  const response = await api.get("/api/blogs");
+
+  const contents = response.body.map((r) => r.title);
+  assert.strictEqual(response.body.length, initialBlogs.length + 1);
+  assert.ok(contents.includes("LMS-MERN Project"));
+});
+
+test("missing likes property defaults to 0", async () => {
+  const newBlog = {
+    title: "Check if likes missing",
+    author: "Missing Likes",
+    url: "http://test.url",
+    // likes property is intentionally omitted
+  };
+
+  await api.post("/api/blogs").send(newBlog);
+
+  const response = await api.get("/api/blogs");
+  const addedBlog = response.body.find(
+    (blog) => blog.title === "Check if likes missing"
+  );
+
+  assert.strictEqual(addedBlog.likes, 0);
+});
+
+test("returns 400 Bad Request if title is missing", async () => {
+  const newBlog = {
+    author: "John Doe",
+    url: "https://example.com",
+    likes: 10,
+  };
+
+  await api.post("/api/blogs").send(newBlog).expect(400);
+});
+
+test("returns 400 Bad Request if url is missing", async () => {
+  const newBlog = {
+    title: "Test Blog",
+    author: "Jane Doe",
+    likes: 20,
+  };
+
+  await api.post("/api/blogs").send(newBlog).expect(400);
+});
 
 after(async () => {
   await mongoose.connection.close()
